@@ -1,5 +1,5 @@
 const BASE_URL = "https://api.themoviedb.org/3";
-const BASE_IMG_URL = "https://image.tmdb.org/t/p/w500";
+const BASE_IMG_URL = "https://image.tmdb.org/t/p";
 const API_KEY_MOVIEDB =
   "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjMDc2MjllMTZlZjBiYTFjODgwNjNmMDA2ZGVhNWNlZCIsIm5iZiI6MTc1MzE4MTE2MC4xODgsInN1YiI6IjY4N2Y2YmU4N2IwMWYxMDkyNjE2YTkyYiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.G66eely7gMyY3mk0EdSHbo_pVVn72vKSHq03rxoOtUg";
 
@@ -101,7 +101,7 @@ async function displayPopularMovies() {
           <img
             src=${
               poster_path
-                ? `${BASE_IMG_URL}/${poster_path}.jpg`
+                ? `${BASE_IMG_URL}/w500/${poster_path}.jpg`
                 : "images/no-image.jpg"
             }
             class="card-img-top"
@@ -140,7 +140,7 @@ async function displayPopularTV() {
           <img
             src=${
               poster_path
-                ? `${BASE_IMG_URL}/${poster_path}.jpg`
+                ? `${BASE_IMG_URL}/w500/${poster_path}.jpg`
                 : "images/no-image.jpg"
             }
             class="card-img-top"
@@ -188,7 +188,7 @@ async function displayMovieDetail() {
           <img
             src=${
               poster_path
-                ? `${BASE_IMG_URL}/${poster_path}.jpg`
+                ? `${BASE_IMG_URL}/w500/${poster_path}.jpg`
                 : "images/no-image.jpg"
             }
             class="card-img-top"
@@ -244,6 +244,8 @@ async function displayMovieDetail() {
       </div>
     </div>
   `;
+
+  displayBackgroundImage("movies", backdrop_path);
 }
 
 async function displayShowDetail() {
@@ -275,7 +277,7 @@ async function displayShowDetail() {
           <img
             src=${
               poster_path
-                ? `${BASE_IMG_URL}/${poster_path}.jpg`
+                ? `${BASE_IMG_URL}/w500/${poster_path}.jpg`
                 : "images/no-image.jpg"
             }
             class="card-img-top"
@@ -334,4 +336,24 @@ async function displayShowDetail() {
       </div>
     </div>
   `;
+
+  displayBackgroundImage("show", backdrop_path);
+}
+
+async function displayBackgroundImage(type, backgroundPath) {
+  const overlayDiv = document.createElement("div");
+  overlayDiv.style.backgroundImage = `url(${BASE_IMG_URL}/original/${backgroundPath})`;
+  overlayDiv.style.zIndex = -1;
+  overlayDiv.style.opacity = 0.2;
+  overlayDiv.classList.add("bg-image");
+
+  let container;
+  if (type === "movies") {
+    container = document.getElementById("movie-details");
+  } else {
+    container = document.getElementById("show-details");
+  }
+  console.log(container);
+  console.log(overlayDiv);
+  container.appendChild(overlayDiv);
 }
