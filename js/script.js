@@ -80,6 +80,60 @@ function init() {
 
 document.addEventListener("DOMContentLoaded", init);
 
+async function initSwiper() {
+  const swiper = new Swiper(".swiper", {
+    slidesPerView: 1,
+    spaceBetween: 30,
+    freeMode: true,
+    autoPlay: {
+      delay: 4000,
+      disableOnInteraction: false,
+    },
+    breakpoints: {
+      500: {
+        slidesPerView: 2,
+      },
+      700: {
+        slidesPerView: 3,
+      },
+      1200: {
+        slidesPerView: 4,
+      },
+    },
+  });
+}
+
+async function displaySlider() {
+  const { results } = await fetchMovies("/movie/now_playing");
+  const swiperContainer = document.querySelector(".swiper-wrapper");
+  results?.map((movie) => {
+    const { id, title, poster_path, vote_average: _vote_average } = movie || {};
+    const vote_average = Number(_vote_average).toFixed(2);
+
+    const swiperSlide = document.createElement("div");
+    swiperContainer.append(swiperSlide);
+    swiperSlide.outerHTML = `
+      <div class="swiper-slide">
+        <a href="movie-details.html?id=${id}">
+          <img
+            src=${
+              poster_path
+                ? `${BASE_IMG_URL}/w500/${poster_path}.jpg`
+                : "images/no-image.jpg"
+            }
+            alt="${title ?? "Movie Title"}"
+          />
+        </a>
+        <h4 class="swiper-rating">
+          <i class="fas fa-star text-secondary"></i> ${vote_average} / 10
+        </h4>
+      </div>
+    `;
+  });
+
+  initSwiper();
+}
+
 async function displayPopularMovies() {
   const data = await fetchMovies("/movie/popular");
 
@@ -117,6 +171,8 @@ async function displayPopularMovies() {
       </div>
     `;
   });
+
+  displaySlider();
 }
 
 async function displayPopularTV() {
