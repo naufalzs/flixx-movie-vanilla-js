@@ -1,7 +1,6 @@
 const BASE_URL = "https://api.themoviedb.org/3";
 const BASE_IMG_URL = "https://image.tmdb.org/t/p";
-const API_KEY_MOVIEDB =
-  "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjMDc2MjllMTZlZjBiYTFjODgwNjNmMDA2ZGVhNWNlZCIsIm5iZiI6MTc1MzE4MTE2MC4xODgsInN1YiI6IjY4N2Y2YmU4N2IwMWYxMDkyNjE2YTkyYiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.G66eely7gMyY3mk0EdSHbo_pVVn72vKSHq03rxoOtUg";
+const API_KEY_MOVIEDB = "";
 
 const global = {
   currentPage: window.location.pathname,
