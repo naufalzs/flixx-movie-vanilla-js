@@ -5,6 +5,13 @@ const API_KEY_MOVIEDB =
 
 const global = {
   currentPage: window.location.pathname,
+  search: {
+    type: "",
+    term: "",
+    page: 1,
+    total_pages: 1,
+    total_results: 1,
+  },
 };
 
 const toggleSpinner = () => {
@@ -32,11 +39,47 @@ async function fetchMovies(endpoint) {
   }
 }
 
+async function fetchSearch() {
+  let data;
+  const type = global.search.type;
+  const params = new URLSearchParams();
+  params.append("query", global.search.term);
+  params.append("page", global.search.page);
+
+  toggleSpinner();
+  try {
+    const response = await fetch(`${BASE_URL}/search/${type}?${params}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${API_KEY_MOVIEDB}`,
+      },
+    });
+    data = await response.json();
+  } catch (error) {
+    console.error("error display movie ", error);
+  } finally {
+    toggleSpinner();
+    return data;
+  }
+}
+
 function getURLQuery(key) {
   const queryString = window.location.search;
   const urlParams = new URLSearchParams(queryString);
 
   return urlParams.get(key);
+}
+
+function showAlert(message, type = "error") {
+  const alert = document.querySelector("#alert");
+  alert.classList.add("alert");
+  alert.classList.add(type);
+  alert.appendChild(document.createTextNode(message));
+
+  setTimeout(() => {
+    alert.remove();
+  }, 3000);
 }
 
 function highlightActiveLink() {
@@ -69,7 +112,7 @@ function init() {
       displayShowDetail();
       break;
     case "/search.html":
-      console.log("search page");
+      displaySearchPage();
       break;
     default:
       return;
@@ -412,4 +455,129 @@ async function displayBackgroundImage(type, backgroundPath) {
   console.log(container);
   console.log(overlayDiv);
   container.appendChild(overlayDiv);
+}
+
+function syncSearchInput() {
+  const searchForm = document.querySelector(".search-form");
+  const searchInput = searchForm.querySelector("#search-term");
+  searchInput.value = global.search.term;
+
+  const inputsRadio = searchForm.querySelectorAll('input[type="radio"]');
+  inputsRadio.forEach((inputRadio) => {
+    inputRadio.removeAttribute("checked");
+
+    const radioValue = inputRadio.getAttribute("value");
+    if (radioValue === global.search.type) {
+      inputRadio.setAttribute("checked", true);
+    }
+  });
+}
+
+async function getSearchResult() {
+  const { results, total_pages, total_results } = await fetchSearch();
+  global.search.total_pages = total_pages;
+  global.search.total_results = total_results;
+
+  displaySearchResult(results);
+}
+
+async function displaySearchPage() {
+  global.search.type = getURLQuery("type");
+  global.search.term = getURLQuery("search-term");
+
+  if (global.search.term === "") return showAlert("Please enter a Search Term");
+
+  const params = new URLSearchParams();
+  params.append("query", global.search.term);
+
+  syncSearchInput();
+
+  getSearchResult();
+}
+
+async function displaySearchResult(results) {
+  const type = global.search.type;
+
+  const resultContainer = document.getElementById("search-results");
+  resultContainer.innerHTML = "";
+  results?.map((item) => {
+    const { id, poster_path } = item || {};
+    let title;
+    let _releaseDate;
+
+    if (type === "movie") {
+      title = item?.title;
+      _releaseDate = item?.release_date;
+    } else {
+      title = item?.name;
+      _releaseDate = item?._first_air_date;
+    }
+
+    const releaseDate =
+      _releaseDate?.split("-").reverse().join("-") ?? "XX/XX/XXXX";
+
+    const itemEl = document.createElement("div");
+    resultContainer.appendChild(itemEl);
+    itemEl.outerHTML = `
+      <div class="card">
+        <a href="${type}-details.html?id=${id}">
+          <img
+            src=${
+              poster_path
+                ? `${BASE_IMG_URL}/w500/${poster_path}.jpg`
+                : "images/no-image.jpg"
+            }
+            class="card-img-top"
+            alt="${title ?? `${type} Title`}"
+          />
+        </a>
+        <div class="card-body">
+          <h5 class="card-title">${title ?? `Movie Or Show Name`}</h5>
+          <p class="card-text">
+            <small class="text-muted">Release: ${releaseDate}</small>
+          </p>
+        </div>
+      </div>
+    `;
+  });
+
+  const total_results = global.search.total_results;
+
+  const searchHeading = document.querySelector("#search-results-heading");
+  searchHeading.innerHTML = "";
+  searchHeading.innerHTML = `
+    <h2>${results?.length} of ${total_results}</h2>
+  `;
+
+  displayPagination();
+}
+
+function displayPagination() {
+  const prevBtn = document.querySelector("#prev");
+  const nextBtn = document.querySelector("#next");
+  const pageCounter = document.querySelector(".page-counter");
+
+  const page = global.search.page;
+  const total_pages = global.search.total_pages;
+
+  if (page === 1) {
+    prevBtn.disabled = true;
+  }
+
+  if (page === total_pages) {
+    nextBtn.disabled = true;
+  }
+
+  pageCounter.innerHTML = "";
+  pageCounter.append(document.createTextNode(`Page ${page} of ${total_pages}`));
+
+  prevBtn.addEventListener("click", () => {
+    global.search.page--;
+    getSearchResult();
+  });
+
+  nextBtn.addEventListener("click", () => {
+    global.search.page++;
+    getSearchResult();
+  });
 }
